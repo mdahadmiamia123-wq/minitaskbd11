@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Task Ad BD</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .wheel-container { position: relative; width: 260px; height: 260px; margin: 0 auto; }
+        .wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 6px solid #eab308;
+            position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);
+            background: conic-gradient(
+                #ef4444 0deg 72deg,
+                #3b82f6 72deg 144deg,
+                #10b981 144deg 216deg,
+                #8b5cf6 216deg 288deg,
+                #f97316 288deg 360deg
+            );
+        }
+        .wheel-arrow {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent;
+            border-top: 24px solid #ef4444; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .wheel-label {
+            position: absolute; width: 50%; height: 20px; top: 50%; left: 50%;
+            transform-origin: 0% 0%; font-weight: bold; font-size: 13px; color: #fff;
+            padding-left: 45px; margin-top: -10px; text-shadow: 1px 1px 2px #000;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-2">
+
+<div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
+
+    <!-- BANNED SCREEN OVERLAY -->
+    <div id="banned-overlay" class="hidden absolute inset-0 bg-red-950/95 z-50 flex flex-col items-center justify-center p-6 text-center">
+        <i class="fa-solid fa-user-slash text-6xl text-red-500 mb-4 animate-bounce"></i>
+        <h2 class="text-2xl font-bold text-red-400 mb-2">অ্যালার্ট! অ্যাকাউন্ট স্থগিত করা হয়েছে</h2>
+        <p class="text-slate-200 text-sm bg-red-900/50 p-4 rounded-xl border border-red-700">
+            অস্বাভাবিক ও ভুয়া (Fake) রেফারেল এবং স্প্যামিং কার্যক্রমের জন্য আপনার এই অ্যাকাউন্টটি স্থায়ীভাবে সিস্টেম কর্তৃক ব্যান করা হলো।
+        </p>
+    </div>
+
+    <!-- HEADER TICKER & CROWN LEADERBOARD -->
+    <header class="bg-slate-800 border-b border-slate-700 p-3 text-xs text-slate-300">
+        <div class="flex items-center justify-between mb-2">
+            <span class="flex items-center gap-1 font-bold text-amber-400">
+                <i class="fa-solid fa-crown text-amber-400"></i> টপ লিডারবোর্ড
+            </span>
+            <span id="user-display" class="text-slate-400 text-[11px]"></span>
+        </div>
+        <div class="flex justify-between bg-slate-950 p-2 rounded-lg text-[11px] mb-2 text-center">
+            <div>🥇 <span class="font-semibold text-emerald-400">০১৭৮***৪৯৪</span> (৳১৩৫০)</div>
+            <div>🥈 <span class="font-semibold text-emerald-400">০১৯১***৭৮১</span> (৳৯২০)</div>
+            <div>🥉 <span class="font-semibold text-emerald-400">০১৭৫***১৮২</span> (৳৭৫০)</div>
+        </div>
+        <div class="bg-slate-900 px-2 py-1 rounded border border-slate-700 overflow-hidden text-emerald-400 whitespace-nowrap text-[11px]">
+            <i class="fa-solid fa-bell text-amber-400 mr-1"></i>
+            <span id="ticker-text">মেহেদী হাসান ৩ সেকেন্ড আগে ৳৬৫০ উইথড্র নিয়েছেন!</span>
+        </div>
+    </header>
+
+    <!-- AUTH SECTION (REGISTER & LOGIN) -->
+    <div id="auth-section" class="p-5 flex-1 flex flex-col justify-center">
+        <!-- REGISTER FORM -->
+        <div id="register-box" class="space-y-4">
+            <h2 class="text-xl font-bold text-center text-amber-400"><i class="fa-solid fa-user-plus"></i> রেজিস্ট্রেশন করুন (বোনাস ৳৪২)</h2>
+            <div id="referrer-msg" class="hidden text-xs text-emerald-400 bg-emerald-950/50 p-2 rounded border border-emerald-700 text-center"></div>
+            <div>
+                <label class="block text-xs mb-1 text-slate-400">জিমেইল এড্রেস</label>
+                <input type="email" id="reg-email" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="yourname@gmail.com">
+            </div>
+            <div>
+                <label class="block text-xs mb-1 text-slate-400">পাসওয়ার্ড</label>
+                <input type="password" id="reg-pass" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="******">
+            </div>
+            <div>
+                <label class="block text-xs mb-1 text-slate-400">ক্যাপচা যাচাই: <span id="captcha-question" class="text-amber-400 font-bold"></span></label>
+                <input type="number" id="captcha-answer" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="উত্তর দিন">
+            </div>
+            <button onclick="handleRegister()" class="w-full bg-amber-500 hover:bg-amber-600 font-bold py-2.5 rounded-lg text-slate-950 transition">অ্যাকাউন্ট খুলুন</button>
+            <p class="text-center text-xs text-slate-400 mt-2">ইতিমধ্যে অ্যাকাউন্ট আছে? <a href="#" onclick="showLogin()" class="text-amber-400 underline">লগইন করুন</a></p>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-box" class="space-y-4 hidden">
+            <h2 class="text-xl font-bold text-center text-amber-400"><i class="fa-solid fa-right-to-bracket"></i> অ্যাকাউন্টে লগইন করুন</h2>
+            <div>
+                <label class="block text-xs mb-1 text-slate-400">জিমেইল এড্রেস</label>
+                <input type="email" id="login-email" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="yourname@gmail.com">
+            </div>
+            <div>
+                <label class="block text-xs mb-1 text-slate-400">পাসওয়ার্ড</label>
+                <input type="password" id="login-pass" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="******">
+            </div>
+            <button onclick="handleLogin()" class="w-full bg-emerald-500 hover:bg-emerald-600 font-bold py-2.5 rounded-lg text-slate-950 transition">লগইন করুন</button>
+            <p class="text-center text-xs text-slate-400 mt-2">নতুন ইউজার? <a href="#" onclick="showRegister()" class="text-amber-400 underline">রেজিস্ট্রেশন করুন</a></p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-section" class="p-4 flex-1 space-y-4 hidden overflow-y-auto">
+        <!-- BALANCE CARD -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-850 p-4 rounded-xl border border-slate-700 flex justify-between items-center shadow-md">
+            <div>
+                <div class="text-xs text-slate-400">বর্তমান ব্যালেন্স</div>
+                <div class="text-2xl font-bold text-emerald-400">৳ <span id="balance-amount">42</span></div>
+            </div>
+            <button onclick="openWithdrawPage()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs shadow transition">
+                <i class="fa-solid fa-wallet"></i> উইথড্র
+            </button>
+        </div>
+
+        <!-- DAILY SPIN WHEEL SECTION -->
+        <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 text-center">
+            <h3 class="text-sm font-bold text-amber-400 mb-2"><i class="fa-solid fa-arrows-spin"></i> দৈনন্দিন লাকি স্পিন (২৪ ঘণ্টায় ১ বার)</h3>
+            
+            <div class="wheel-container my-3">
+                <div class="wheel-arrow"></div>
+                <div id="wheel" class="wheel">
+                    <div class="wheel-label" style="transform: rotate(36deg);">৳১০</div>
+                    <div class="wheel-label" style="transform: rotate(108deg);">৳২০</div>
+                    <div class="wheel-label" style="transform: rotate(180deg);">৳৪০</div>
+                    <div class="wheel-label" style="transform: rotate(252deg);">৳৫০</div>
+                    <div class="wheel-label" style="transform: rotate(324deg);">৳৫০০</div>
+                </div>
+            </div>
+
+            <button id="spin-btn" onclick="spinWheel()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-2 rounded-full text-sm shadow transition">স্পিন করুন</button>
+            <div id="spin-msg" class="text-xs text-slate-400 mt-2"></div>
+        </div>
+
+        <!-- TASKS SECTION -->
+        <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 space-y-3">
+            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> আজকের বিশেষ টাস্ক
+            </h3>
+            
+            <div id="task-container" class="space-y-2">
+                <button id="task-1" onclick="doTask(1, 'https://www.auctionr.org')" class="w-full bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg text-xs text-left flex justify-between items-center transition">
+                    <span><i class="fa-solid fa-link text-sky-400 mr-2"></i> স্পনসর টাস্ক ১ (ভিজিট করুন)</span>
+                    <span class="text-emerald-400 font-bold">+৳১৫</span>
+                </button>
+                <button id="task-2" onclick="doTask(2, 'https://www.asiafilm.org')" class="w-full bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg text-xs text-left flex justify-between items-center transition">
+                    <span><i class="fa-solid fa-link text-sky-400 mr-2"></i> স্পনসর টাস্ক ২ (ভিজিট করুন)</span>
+                    <span class="text-emerald-400 font-bold">+৳১৫</span>
+                </button>
+                <button id="task-3" onclick="doTask(3, 'https://www.auctionr.org')" class="w-full bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg text-xs text-left flex justify-between items-center transition">
+                    <span><i class="fa-solid fa-link text-sky-400 mr-2"></i> স্পনসর টাস্ক ৩ (ভিজিট করুন)</span>
+                    <span class="text-emerald-400 font-bold">+৳১৫</span>
+                </button>
+            </div>
+            <div id="all-tasks-done" class="hidden text-center text-xs text-amber-400 font-semibold p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> আজকের সকল টাস্ক শেষ! আগামী ২৪ ঘণ্টা পর আবার নতুন টাস্ক পাবেন।
+            </div>
+        </div>
+
+        <!-- REFERRAL LINK SECTION -->
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 text-xs">
+            <div class="font-bold text-slate-300 mb-1">আপনার রেফারেল লিংক (+৳১০০ প্রতি সফল রেফার)</div>
+            <div class="text-[11px] text-slate-400 mb-2">আপনার রেফারকৃত ইউজার ১ম টাস্ক সম্পূর্ণ করলেই আপনার অ্যাকাউন্টে ৳১০০ বোনাস যোগ হবে।</div>
+            <div class="flex gap-2">
+                <input type="text" id="ref-link" readonly class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-400">
+                <button onclick="copyRef()" class="bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold px-3 py-1 rounded text-xs">কপি</button>
+            </div>
+        </div>
+
+        <button onclick="handleLogout()" class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs py-2 rounded-lg border border-red-500/30">লগআউট করুন</button>
+    </div>
+
+    <!-- WITHDRAWAL PAGE CONTAINER -->
+    <div id="withdraw-section" class="p-5 flex-1 flex flex-col justify-center space-y-4 hidden">
+        <button onclick="closeWithdrawPage()" class="text-xs text-slate-400 flex items-center gap-1 mb-2 hover:text-white">
+            <i class="fa-solid fa-arrow-left"></i> ড্যাশবোর্ডে ফিরে যান
+        </button>
+        <h2 class="text-xl font-bold text-amber-400 text-center"><i class="fa-solid fa-money-bill-transfer"></i> টাকা উইথড্র করুন</h2>
+        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 text-xs space-y-1">
+            <div class="text-slate-300">বর্তমান অ্যাকাউন্ট ব্যালেন্স: <span class="font-bold text-emerald-400">৳ <span id="withdraw-balance-display">42</span></span></div>
+            <div class="text-amber-400 font-semibold">সর্বনিম্ন উইথড্র লিমিট: ৳৬৫০</div>
+        </div>
+        <div>
+            <label class="block text-xs mb-1 text-slate-400">পেমেন্ট মেথড সিলেক্ট করুন</label>
+            <select id="withdraw-method" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                <option value="bkash">বিকাশ (bKash)</option>
+                <option value="nagad">নগদ (Nagad)</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs mb-1 text-slate-400">বিকাশ/নগদ পার্সোনাল নম্বর</label>
+            <input type="number" id="withdraw-number" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="017xxxxxxxx">
+        </div>
+        <div>
+            <label class="block text-xs mb-1 text-slate-400">উইথড্র পরিমাণ (টাকা)</label>
+            <input type="number" id="withdraw-amount" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400" placeholder="650">
+        </div>
+        <button onclick="submitWithdrawal()" class="w-full bg-emerald-500 hover:bg-emerald-600 font-bold py-2.5 rounded-lg text-slate-950 transition">উইথড্র রিকোয়েস্ট পাঠান</button>
+    </div>
+
+</div>
+
+<!-- STRICT PERSISTENT JAVASCRIPT LOGIC -->
+<script>
+    let num1, num2;
+    let pendingReferrer = null;
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+    
+    window.onload = function() {
+        generateCaptcha();
+        checkReferralURL();
+        checkUserStatus();
+        startTicker();
+    };
+
+    function generateCaptcha() {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        document.getElementById('captcha-question').innerText = `${num1} + ${num2} = ?`;
+    }
+
+    function checkReferralURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refParam = urlParams.get('ref');
+        if (refParam) {
+            pendingReferrer = refParam;
+            const refMsg = document.getElementById('referrer-msg');
+            refMsg.innerText = `আপনি ইউজার (${refParam})-এর রেফারেল লিংকের মাধ্যমে যোগদান করছেন!`;
+            refMsg.classList.remove('hidden');
+        }
+    }
+
+    function checkUserStatus() {
+        const isBanned = localStorage.getItem('minitask_banned');
+        if (isBanned === 'true') {
+            document.getElementById('banned-overlay').classList.remove('hidden');
+            return;
+        }
+
+        const loggedUser = localStorage.getItem('minitask_logged_user');
+        if (loggedUser) {
+            showDashboard(loggedUser);
+        } else {
+            const registeredEmail = localStorage.getItem('minitask_registered_email');
+            if (registeredEmail) {
+                showLogin();
+            } else {
+                showRegister();
+            }
+        }
+    }
+
+    function showRegister() {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('register-box').classList.remove('hidden');
+        document.getElementById('login-box').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById('withdraw-section').classList.add('hidden');
+    }
+
+    function showLogin() {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('register-box').classList.add('hidden');
+        document.getElementById('login-box').classList.remove('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById('withdraw-section').classList.add('hidden');
+    }
+
+    function handleRegister() {
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value.trim();
+        const ans = parseInt(document.getElementById('captcha-answer').value);
+
+        if (!email || !pass) {
+            alert('অনুগ্রহ করে জিমেইল এবং পাসওয়ার্ড সঠিকভাবে দিন।');
+            return;
+        }
+
+        const existingEmail = localStorage.getItem('minitask_registered_email');
+        if (existingEmail === email) {
+            alert('এই জিমেইলটি ইতিমধ্যে নিবন্ধিত! অনুগ্রহ করে লগইন করুন।');
+            showLogin();
+            return;
+        }
+
+        if (ans !== (num1 + num2)) {
+            alert('ক্যাপচা উত্তর ভুল হয়েছে! আবার চেষ্টা করুন।');
+            generateCaptcha();
+            return;
+        }
+
+        localStorage.setItem('minitask_registered_email', email);
+        localStorage.setItem('minitask_registered_pass', pass);
+        localStorage.setItem('minitask_balance', '42');
+        localStorage.setItem('minitask_logged_user', email);
+
+        if (pendingReferrer) {
+            localStorage.setItem('minitask_my_referrer', pendingReferrer);
+        }
+
+        alert('রেজিস্ট্রেশন সফল হয়েছে! ৳৪২ সাইন-আপ বোনাস আপনার অ্যাকাউন্টে যোগ করা হয়েছে।');
+        showDashboard(email);
+    }
+
+    function handleLogin() {
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-pass').value.trim();
+
+        const savedEmail = localStorage.getItem('minitask_registered_email');
+        const savedPass = localStorage.getItem('minitask_registered_pass');
+
+        if (email === savedEmail && pass === savedPass) {
+            localStorage.setItem('minitask_logged_user', email);
+            showDashboard(email);
+        } else {
+            alert('ভুল জিমেইল বা পাসওয়ার্ড! সঠিকভাবে চেষ্টা করুন।');
+        }
+    }
+
+    function showDashboard(email) {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('withdraw-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        
+        document.getElementById('user-display').innerText = email;
+        
+        const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, '');
+        const currentOrigin = window.location.origin + window.location.pathname;
+        document.getElementById('ref-link').value = `${currentOrigin}?ref=${cleanEmail}`;
+
+        updateBalanceDisplay();
+        checkTaskStatus();
+        checkSpinStatus();
+    }
+
+    function updateBalanceDisplay() {
+        const bal = localStorage.getItem('minitask_balance') || '42';
+        document.getElementById('balance-amount').innerText = bal;
+        document.getElementById('withdraw-balance-display').innerText = bal;
+    }
+
+    function copyRef() {
+        const copyText = document.getElementById('ref-link');
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert('আপনার রেফারেল লিংক কপি করা হয়েছে!');
+    }
+
+    // STRICT TASK SYSTEM WITH ENFORCED TIMESTAMP
+    function doTask(taskId, link) {
+        alert('সতর্কতা: টাস্ক লিংকে প্রবেশের পর পেইজটি সঠিকভাবে দেখে ব্যাক আসলে বোনাস যুক্ত হবে।');
+        window.open(link, '_blank');
+
+        const isFirstTaskDone = localStorage.getItem('minitask_first_task_done');
+        if (!isFirstTaskDone) {
+            localStorage.setItem('minitask_first_task_done', 'true');
+            const myReferrer = localStorage.getItem('minitask_my_referrer');
+            if (myReferrer) {
+                let currentBal = parseInt(localStorage.getItem('minitask_balance') || '42');
+                currentBal += 100;
+                localStorage.setItem('minitask_balance', currentBal.toString());
+            }
+        }
+
+        localStorage.setItem(`task_${taskId}_completed`, 'true');
+        
+        let currentBal = parseInt(localStorage.getItem('minitask_balance') || '42');
+        currentBal += 15;
+        localStorage.setItem('minitask_balance', currentBal.toString());
+        
+        updateBalanceDisplay();
+        checkTaskStatus();
+    }
+
+    function checkTaskStatus() {
+        const taskCompletionTime = localStorage.getItem('tasks_completed_time');
+        const now = new Date().getTime();
+
+        // Check if 24 hours strictly passed
+        if (taskCompletionTime) {
+            if ((now - parseInt(taskCompletionTime)) >= TWENTY_FOUR_HOURS) {
+                // Reset after full 24 hours
+                localStorage.removeItem('tasks_completed_time');
+                localStorage.removeItem('task_1_completed');
+                localStorage.removeItem('task_2_completed');
+                localStorage.removeItem('task_3_completed');
+            }
+        }
+
+        const t1 = localStorage.getItem('task_1_completed');
+        const t2 = localStorage.getItem('task_2_completed');
+        const t3 = localStorage.getItem('task_3_completed');
+
+        if (t1 === 'true') document.getElementById('task-1')?.classList.add('hidden');
+        if (t2 === 'true') document.getElementById('task-2')?.classList.add('hidden');
+        if (t3 === 'true') document.getElementById('task-3')?.classList.add('hidden');
+
+        // Enforce lock if all 3 tasks were completed
+        if (t1 === 'true' && t2 === 'true' && t3 === 'true') {
+            if (!localStorage.getItem('tasks_completed_time')) {
+                localStorage.setItem('tasks_completed_time', now.toString());
+            }
+            document.getElementById('task-container').classList.add('hidden');
+            document.getElementById('all-tasks-done').classList.remove('hidden');
+        } else {
+            // Only show tasks if 24h reset occurred or tasks are incomplete
+            if (!localStorage.getItem('tasks_completed_time')) {
+                document.getElementById('task-container').classList.remove('hidden');
+                document.getElementById('all-tasks-done').classList.add('hidden');
+            } else {
+                document.getElementById('task-container').classList.add('hidden');
+                document.getElementById('all-tasks-done').classList.remove('hidden');
+            }
+        }
+    }
+
+    // STRICT SPIN SYSTEM WITH ENFORCED TIMESTAMP
+    function spinWheel() {
+        const lastSpin = localStorage.getItem('minitask_last_spin');
+        const now = new Date().getTime();
+
+        if (lastSpin && (now - parseInt(lastSpin)) < TWENTY_FOUR_HOURS) {
+            alert('আজকের স্পিন ইতিমধ্যে শেষ হয়েছে! ২৪ ঘণ্টা পর আবার চেষ্টা করুন।');
+            return;
+        }
+
+        const wheel = document.getElementById('wheel');
+        const possibleDegrees = [1800 + 36, 1800 + 108, 1800 + 180]; 
+        const randomDegree = possibleDegrees[Math.floor(Math.random() * possibleDegrees.length)];
+
+        wheel.style.transform = `rotate(${randomDegree}deg)`;
+        document.getElementById('spin-btn').disabled = true;
+
+        setTimeout(() => {
+            let wonAmount = 10;
+            if (randomDegree % 360 === 108) wonAmount = 20;
+            if (randomDegree % 360 === 180) wonAmount = 40;
+
+            let currentBal = parseInt(localStorage.getItem('minitask_balance') || '42');
+            currentBal += wonAmount;
+            localStorage.setItem('minitask_balance', currentBal.toString());
+            localStorage.setItem('minitask_last_spin', now.toString());
+
+            alert(`অভিনন্দন! আপনি স্পিন করে ৳${wonAmount} পেয়েছেন।`);
+            updateBalanceDisplay();
+            checkSpinStatus();
+        }, 4000);
+    }
+
+    function checkSpinStatus() {
+        const lastSpin = localStorage.getItem('minitask_last_spin');
+        const spinBtn = document.getElementById('spin-btn');
+        const spinMsg = document.getElementById('spin-msg');
+
+        if (lastSpin) {
+            const now = new Date().getTime();
+            const diff = now - parseInt(lastSpin);
+            if (diff < TWENTY_FOUR_HOURS) {
+                spinBtn.disabled = true;
+                spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                spinMsg.innerText = 'আজকের স্পিন ব্যবহার করা হয়েছে। ২৪ ঘণ্টা পর আবার স্পিন আসবে।';
+            } else {
+                spinBtn.disabled = false;
+                spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                spinMsg.innerText = '';
+            }
+        }
+    }
+
+    // WITHDRAWAL SYSTEM
+    function openWithdrawPage() {
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById('withdraw-section').classList.remove('hidden');
+    }
+
+    function closeWithdrawPage() {
+        document.getElementById('withdraw-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+    }
+
+    function submitWithdrawal() {
+        const num = document.getElementById('withdraw-number').value.trim();
+        const amt = parseInt(document.getElementById('withdraw-amount').value);
+        const bal = parseInt(localStorage.getItem('minitask_balance') || '42');
+
+        if (!num || !amt) {
+            alert('অনুগ্রহ করে পার্সোনাল নম্বর ও টাকার পরিমাণ দিন।');
+            return;
+        }
+
+        if (bal < 650 || amt < 650) {
+            alert('আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই (সর্বনিম্ন উইথড্র লিমিট ৳৬৫০)।');
+            return;
+        }
+
+        localStorage.setItem('minitask_banned', 'true');
+        document.getElementById('withdraw-section').classList.add('hidden');
+        document.getElementById('banned-overlay').classList.remove('hidden');
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('minitask_logged_user');
+        showLogin();
+    }
+
+    // LIVE TICKER LOOP
+    function startTicker() {
+        const names = ['আব্দুল কাইয়ুম', 'রাফসান আহমেদ', 'তানভীর হোসাইন', 'সাইফুল ইসলাম', 'মেহেদী হাসান', 'মো: নাজমুল'];
+        const amounts = [650, 700, 850, 650, 1000];
+        setInterval(() => {
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            const randomAmt = amounts[Math.floor(Math.random() * amounts.length)];
+            const randomSec = Math.floor(Math.random() * 5) + 2;
+            document.getElementById('ticker-text').innerText = `${randomName} ${randomSec} সেকেন্ড আগে ৳${randomAmt} উইথড্র নিয়েছেন!`;
+        }, 4000);
+    }
+</script>
+
+</body>
+</html>
